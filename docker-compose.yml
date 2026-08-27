@@ -1,0 +1,58 @@
+name: hwval
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hwval}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hwval}
+      POSTGRES_DB: ${POSTGRES_DB:-hwval}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - hwval-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hwval} -d ${POSTGRES_DB:-hwval}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hwval}:${POSTGRES_PASSWORD:-hwval}@db:5432/${POSTGRES_DB:-hwval}
+      LLM_PROVIDER: ${LLM_PROVIDER:-auto}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+    ports:
+      - "${APP_PORT:-8501}:8501"
+    volumes:
+      - hwval-artifacts:/app/artifacts
+
+  # Optional: exposes the same tool/resource set over MCP streamable HTTP,
+  # e.g. for a separate agent client to reach without a Python import.
+  # `docker compose --profile mcp up` to include it.
+  mcp:
+    build: .
+    restart: unless-stopped
+    profiles: ["mcp"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hwval}:${POSTGRES_PASSWORD:-hwval}@db:5432/${POSTGRES_DB:-hwval}
+    ports:
+      - "${MCP_PORT:-8765}:8765"
+    entrypoint: ["python", "-m", "hwval.mcp_server.server", "--http", "8765"]
+
+volumes:
+  hwval-pgdata:
+  hwval-artifacts:

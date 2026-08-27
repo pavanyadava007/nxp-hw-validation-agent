@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hardware Validation Report</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #0f172a; --muted: #64748b; --border: #e2e8f0;
+    --accent: #2563eb; --card: #f8fafc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg); margin: 0; padding: 2rem 1.5rem 4rem;
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.5;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.25rem; margin-top: 2.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.3rem; }
+  .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .meta span { display: inline-block; margin-right: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--border); padding: 0.4rem 0.6rem; text-align: right; }
+  th { background: var(--card); text-align: right; }
+  td:first-child, th:first-child { text-align: left; }
+  .figure-grid { display: grid; grid-template-columns: 1fr; gap: 1.75rem; }
+  .figure-card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 1rem; background: var(--card);
+  }
+  .figure-card img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  .figure-card h3 { margin: 0 0 0.6rem; font-size: 1rem; text-transform: capitalize; }
+  pre {
+    background: #0f172a; color: #e2e8f0; padding: 0.8rem 1rem; border-radius: 6px;
+    overflow-x: auto; font-size: 0.8rem;
+  }
+  .query-name { font-weight: 600; margin-top: 1rem; }
+  .exec-summary { background: var(--card); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Hardware Validation Report</h1>
+  <div class="meta">
+    <span><strong>Generated (UTC):</strong> {{ generated_at }}</span>
+    <span><strong>DB dialect:</strong> {{ dialect }}</span>
+    <span><strong>Scope:</strong> {{ scope }}</span>
+  </div>
+
+  <h2>Executive Summary</h2>
+  <p class="exec-summary">{{ exec_summary }}</p>
+
+  <h2>Yield Summary by Corner</h2>
+  {{ summary_table_html | safe }}
+
+  <h2>Process Capability (Cp / Cpk)</h2>
+  {{ cpk_table_html | safe }}
+
+  <h2>Figures</h2>
+  <div class="figure-grid">
+    {% for fig in figures %}
+    <div class="figure-card">
+      <h3>{{ fig.title }}</h3>
+      <img src="{{ fig.data_uri }}" alt="{{ fig.title }}">
+    </div>
+    {% endfor %}
+  </div>
+
+  <h2>Anomaly Findings</h2>
+  <p><em>Source: {{ anomaly_source }}</em></p>
+  {{ anomaly_table_html | safe }}
+
+  <h2>Appendix: SQL Query Traceability</h2>
+  {% for name, sql in queries %}
+    <div class="query-name">{{ name }}</div>
+    <pre>{{ sql.strip() }}</pre>
+  {% endfor %}
+</div>
+</body>
+</html>

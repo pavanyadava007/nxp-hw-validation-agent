@@ -1,0 +1,10 @@
+# Development/CI environment: everything in requirements.txt, plus the test
+# tooling and TensorFlow (for exercising the real LSTM autoencoder path in
+# `make train` / `make test` locally and in the postgres-integration CI job).
+# NOT used by Streamlit Community Cloud -- see requirements.txt's header.
+-r requirements.txt
+
+pytest>=8.0.0
+pytest-cov>=5.0.0
+ruff>=0.6.0
+tensorflow-cpu>=2.16.0

@@ -1,0 +1,23 @@
+[server]
+headless = true
+runOnSave = false
+fileWatcherType = "none"
+enableXsrfProtection = true
+enableCORS = false
+maxUploadSize = 5
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#2563eb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f1f5f9"
+textColor = "#0f172a"
+
+[client]
+showErrorDetails = true
+
+[logger]
+level = "info"

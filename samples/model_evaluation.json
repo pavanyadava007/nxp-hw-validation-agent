@@ -1,0 +1,182 @@
+{
+  "n_runs": 240,
+  "n_anomalies": 40,
+  "note": "iforest/autoencoder/supervised/fused metrics are computed over the full scored population at each score's own best-F1 threshold -- a whole-population comparison against the naive limit screen, not a held-out generalisation estimate. See 'supervised_holdout' for the true out-of-sample metrics from train_sklearn()'s grouped train/test split.",
+  "baseline_limit_screen": {
+    "precision": 0.7083333333333334,
+    "recall": 0.425,
+    "f1": 0.53125,
+    "confusion_matrix": [
+      [
+        193,
+        7
+      ],
+      [
+        23,
+        17
+      ]
+    ]
+  },
+  "iforest": {
+    "precision": 0.85,
+    "recall": 0.85,
+    "f1": 0.85,
+    "confusion_matrix": [
+      [
+        194,
+        6
+      ],
+      [
+        6,
+        34
+      ]
+    ],
+    "threshold": -0.08280137214091404,
+    "roc_auc": 0.918125,
+    "pr_auc": 0.8665106252130365
+  },
+  "supervised": {
+    "precision": 1.0,
+    "recall": 0.95,
+    "f1": 0.9743589743589743,
+    "confusion_matrix": [
+      [
+        200,
+        0
+      ],
+      [
+        2,
+        38
+      ]
+    ],
+    "threshold": 0.6233333333333333,
+    "roc_auc": 0.9961874999999999,
+    "pr_auc": 0.986820652173913
+  },
+  "autoencoder": {
+    "precision": 0.9583333333333334,
+    "recall": 0.575,
+    "f1": 0.71875,
+    "confusion_matrix": [
+      [
+        199,
+        1
+      ],
+      [
+        17,
+        23
+      ]
+    ],
+    "threshold": 0.2707519829273224,
+    "roc_auc": 0.8,
+    "pr_auc": 0.7123980658519781
+  },
+  "fused": {
+    "precision": 0.8611111111111112,
+    "recall": 0.775,
+    "f1": 0.8157894736842105,
+    "confusion_matrix": [
+      [
+        195,
+        5
+      ],
+      [
+        9,
+        31
+      ]
+    ],
+    "threshold": 0.7346456692913386,
+    "roc_auc": 0.9420625,
+    "pr_auc": 0.8856201981550524
+  },
+  "supervised_holdout": {
+    "model_selected": "random_forest",
+    "cv_average_precision": {
+      "random_forest": 0.9159332515310776,
+      "hist_gb": 0.7844928227740727
+    },
+    "roc_auc": 0.9628942486085343,
+    "pr_auc": 0.9172494172494172,
+    "threshold": 0.6233333333333333,
+    "precision": 1.0,
+    "recall": 0.8181818181818182,
+    "f1": 0.899999999999505,
+    "permutation_importance_top12": [
+      {
+        "feature": "LEAK_UA_slope",
+        "importance": 0.039802924866445655
+      },
+      {
+        "feature": "droop_depth",
+        "importance": 0.010902923047953395
+      },
+      {
+        "feature": "JITTER_PS_slope",
+        "importance": 0.009507010553874285
+      },
+      {
+        "feature": "VOH_V_slope",
+        "importance": 0.009146322371791405
+      },
+      {
+        "feature": "JITTER_PS_p95",
+        "importance": 0.009089923980230275
+      },
+      {
+        "feature": "TJ_C_std",
+        "importance": 0.008730812985376835
+      },
+      {
+        "feature": "jitter_ripple_ratio",
+        "importance": 0.007884643274455438
+      },
+      {
+        "feature": "JITTER_PS_max",
+        "importance": 0.007184502823447969
+      },
+      {
+        "feature": "LEAK_UA_p95",
+        "importance": 0.007046330575742244
+      },
+      {
+        "feature": "ICC_MA_max",
+        "importance": 0.007009508093099337
+      },
+      {
+        "feature": "VOH_V_max",
+        "importance": 0.006746345329936565
+      },
+      {
+        "feature": "TJ_C_ripple",
+        "importance": 0.006729772931598388
+      }
+    ]
+  },
+  "test_escapes": {
+    "count": 14,
+    "run_ids": [
+      196,
+      24,
+      4,
+      233,
+      121,
+      165,
+      164,
+      91,
+      137,
+      14,
+      236,
+      180,
+      13,
+      85
+    ]
+  },
+  "overkill": {
+    "count": 3,
+    "run_ids": [
+      199,
+      214,
+      127
+    ]
+  }
+}

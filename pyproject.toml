@@ -1,0 +1,107 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hwval"
+version = "1.0.0"
+description = "AI-driven autonomous hardware validation & reporting agent for semiconductor test data."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+# Core runtime dependencies. Kept in sync with requirements.txt by hand (see
+# that file's header comment) -- pyproject is the source of truth for the
+# installable package (`pip install .` / `pip install .[llm,tf,dev]`).
+dependencies = [
+    "sqlalchemy>=2.0.30",
+    "psycopg2-binary>=2.9.9",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "scikit-learn>=1.4.0",
+    "matplotlib>=3.8.0",
+    "joblib>=1.3.0",
+    "python-dotenv>=1.0.1",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "jinja2>=3.1.3",
+    "tabulate>=0.9.0",
+    "langchain>=1.0.0",
+    "langchain-core>=1.0.0",
+    "langgraph>=1.0.0",
+    "mcp>=1.2.0,<2.0.0",  # hwval.mcp_server uses the v1 FastMCP API (mcp.server.fastmcp)
+    "streamlit>=1.36.0",
+]
+
+[project.optional-dependencies]
+# TensorFlow is heavy (CPU wheel is several hundred MB) and only needed for
+# the LSTM autoencoder -- everything else in hwval.ml degrades to a PCA
+# fallback without it, so it is opt-in, never a core dependency.
+tf = [
+    "tensorflow-cpu>=2.16.0",
+]
+# LLM provider SDKs are opt-in: hwval.agent.llm falls back to a deterministic
+# offline planner (RuleBasedChatModel) when none of these are installed or no
+# API key is configured, so the core install never requires them.
+llm = [
+    "langchain-anthropic>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-groq>=0.2.0",
+    "langchain-google-genai>=2.0.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.6.0",
+]
+
+[project.scripts]
+hwval = "hwval.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+hwval = ["reporting/templates/*.j2"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["artifacts", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # line length is enforced by the formatter/reviewer, not a hard error
+    "B008",   # FastAPI/argparse-style default-arg calls are used deliberately (e.g. Field(...))
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401", "F811"]
+# These modules under src/ are a frozen contract for this task (packaging/deploy
+# work only, no source edits) and predate this ruff config. The ignores below
+# are narrowly scoped to the exact pre-existing style nits ruff flags in each
+# file (import-modernisation suggestions, one file's semicolon-joined argparse
+# setup, one genuinely-unused import, one zip() without strict=) rather than
+# disabling a rule project-wide -- new code (app/, and any future src/ changes)
+# is held to the full rule set above with no exemptions.
+"src/hwval/agent/llm.py" = ["UP035", "UP037"]
+"src/hwval/agent/tools.py" = ["UP035"]
+"src/hwval/cli.py" = ["E702"]
+"src/hwval/db/engine.py" = ["UP035"]
+"src/hwval/db/maintenance.py" = ["UP035"]
+"src/hwval/db/models.py" = ["I001", "UP037"]
+"src/hwval/ml/predict.py" = ["F401"]
+"src/hwval/reporting/plots.py" = ["UP035", "UP037", "F401", "B905"]
+"src/hwval/reporting/report.py" = ["UP035"]
+"src/hwval/reporting/tables.py" = ["UP035"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src/hwval"]
+omit = ["*/mcp_server/*"]
