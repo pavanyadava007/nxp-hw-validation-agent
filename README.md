@@ -1,7 +1,7 @@
 # AI-Driven Hardware Validation & Reporting Agent
 
 An autonomous GenAI agent that turns raw silicon validation measurements into
-answers, anomaly findings, diagrams, reports and test plans — and keeps its own
+answers, anomaly findings, diagrams, reports and test plans - and keeps its own
 PostgreSQL database healthy while doing it.
 
 Built end-to-end: physics-grounded data generator → PostgreSQL warehouse →
