@@ -40,3 +40,8 @@ artifacts/
 
 # Docker
 *.pid
+
+# Personal application drafts — kept locally, never published
+docs/COVER_LETTER.md
+docs/RESUME.md
+docs/INTERVIEW.md
