@@ -25,6 +25,24 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+# --- deploy shim -----------------------------------------------------------
+# Make the `hwval` package importable and pick a zero-infra SQLite database
+# when the host provides no DATABASE_URL (e.g. Streamlit Community Cloud, which
+# installs requirements.txt but does not `pip install -e .`). This must run
+# before any `hwval.*` import below. No effect locally where hwval is already
+# installed and DATABASE_URL is set.
+import os
+import sys
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_SRC = _REPO_ROOT / "src"
+if _SRC.is_dir() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+os.environ.setdefault(
+    "DATABASE_URL", f"sqlite:///{_REPO_ROOT / 'artifacts' / 'hwval.db'}"
+)
+# ---------------------------------------------------------------------------
+
 from hwval.agent.core import DEMO_QUESTIONS, ask, build_agent
 from hwval.agent.llm import llm_status
 from hwval.config import get_settings
@@ -565,10 +583,47 @@ def _tab_reports() -> None:
 
 
 # ---------------------------------------------------------------------------
+# first-run bootstrap (Streamlit Cloud / any fresh deploy)
+# ---------------------------------------------------------------------------
+@st.cache_resource(show_spinner=False)
+def _bootstrap_demo_data() -> dict:
+    """Seed + train + score once on a fresh database so the demo has data on
+    first load. No-op when the DB is already populated (e.g. a redeploy that
+    kept the volume, or a locally seeded DB). Runs once per server process.
+
+    Uses the sklearn models only -- TensorFlow is intentionally not a deploy
+    dependency, and hwval.ml degrades to the PCA autoencoder fallback."""
+    try:
+        existing = int(read_sql("SELECT COUNT(*) AS n FROM test_run").iloc[0]["n"])
+    except Exception:
+        existing = 0  # table/schema not created yet
+    if existing > 0:
+        return {"bootstrapped": False, "runs": existing}
+
+    from hwval.ml.predict import persist_anomaly_events, score_runs
+    from hwval.ml.train_sklearn import train_sklearn
+
+    with st.spinner("First run: generating the validation campaign and training "
+                    "the anomaly models (~30s, one time only)…"):
+        seed_database(GenConfig(n_duts=60), drop=True, verbose=False)
+        train_sklearn()
+        scored = score_runs()
+        persist_anomaly_events(
+            scored[scored["severity"].isin(["MEDIUM", "HIGH", "CRITICAL"])]
+        )
+    return {"bootstrapped": True, "runs": int(len(scored))}
+
+
+# ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
 def main() -> None:
     get_settings()  # populate/validate config + ensure artifact dirs exist
+    try:
+        _bootstrap_demo_data()
+    except Exception as exc:  # never crash the UI; sidebar Seed/Train is the fallback
+        _error_box(exc, "Automatic first-run setup did not complete. Use the sidebar "
+                        "**Seed database** then **Train models** to initialise the demo.")
     st.title("\U0001f52c Hardware Validation Agent")
     st.caption(
         f"Semiconductor test-data analysis, ML anomaly detection and reporting — "
